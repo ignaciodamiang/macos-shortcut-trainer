@@ -25,7 +25,7 @@ if [[ -e "$contents_dir/Info.plist" ]]; then
 fi
 
 trap 'rm -f "$staged_binary"' EXIT
-swiftc "$project_dir/WindowLayout.swift" "$project_dir/Shortcuts.swift" "$project_dir/KeyboardPreview.swift" "$project_dir/main.swift" -o "$staged_binary"
+swiftc "$project_dir/DisplayMenu.swift" "$project_dir/WindowLayout.swift" "$project_dir/Shortcuts.swift" "$project_dir/KeyboardPreview.swift" "$project_dir/main.swift" -o "$staged_binary"
 chmod 755 "$staged_binary"
 cp "$project_dir/Info.plist" "$contents_dir/Info.plist"
 mv "$staged_binary" "$contents_dir/MacOS/Atajos"
