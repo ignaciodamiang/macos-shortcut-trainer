@@ -35,7 +35,7 @@ changes its size, or quits the app. The selected mode and normal position surviv
 a restart. Leaving full-height mode restores the normal placement. Moving between
 displays or changing the screen layout keeps the panel inside the available area.
 
-Use **Pantallas** in the menu bar to disable or reactivate a connected external monitor. The last active screen stays available. This feature uses a private macOS display function, and support depends on the Mac and monitor.
+Click **⌘⌄** in the panel header or choose **Pantallas** from the menu bar to disable or reactivate a connected external monitor. The last active screen stays available. This feature uses a private macOS display function, and support depends on the Mac and monitor.
 
 ## App shortcuts
 

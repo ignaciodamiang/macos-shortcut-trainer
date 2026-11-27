@@ -23,6 +23,7 @@ struct Widget: View {
     @ObservedObject var keyboard: KeyboardPreview
     @ObservedObject var naming: KeyboardNaming
     @ObservedObject var practice: ShortcutPractice
+    let displayMenu: DisplayMenu
     let onChangeSize: () -> Void
     let onHide: () -> Void
 
@@ -42,12 +43,19 @@ struct Widget: View {
 
     private var header: some View {
         HStack {
+            HStack(spacing: 3) {
+                Image(systemName: "command")
+                Image(systemName: "chevron.down").font(.system(size: 8, weight: .semibold))
+            }
+            .foregroundStyle(.mint)
+            .padding([.top, .leading], Self.inset)
+            .overlay { PanelDragArea(displayMenu: displayMenu) }
+
             HStack {
-                Image(systemName: "command").foregroundStyle(.mint)
                 Text(model.content.title).font(.system(size: 16, weight: .semibold)).lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .padding([.top, .leading], Self.inset)
+            .padding(.top, Self.inset)
             .overlay { PanelDragArea() }
 
             HStack {
@@ -95,12 +103,52 @@ struct Widget: View {
 }
 
 private struct PanelDragArea: NSViewRepresentable {
+    var displayMenu: DisplayMenu?
+
     final class DragView: NSView {
+        private var press: NSEvent?
+        override var mouseDownCanMoveWindow: Bool { false }
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
+
+        override func mouseDown(with event: NSEvent) {
+            if menu == nil { window?.performDrag(with: event) }
+            else { press = event }
+        }
+
+        override func mouseDragged(with event: NSEvent) {
+            guard let press else { return }
+            let start = press.locationInWindow
+            let current = event.locationInWindow
+            guard hypot(current.x - start.x, current.y - start.y) >= 3 else { return }
+            self.press = nil
+            window?.performDrag(with: press)
+        }
+
+        override func mouseUp(with event: NSEvent) {
+            guard press != nil else { return }
+            press = nil
+            if bounds.contains(convert(event.locationInWindow, from: nil)) { openMenu() }
+        }
+
+        @discardableResult private func openMenu() -> Bool {
+            guard let menu else { return false }
+            return menu.popUp(positioning: nil, at: .zero, in: self)
+        }
+
+        override func accessibilityPerformPress() -> Bool { openMenu() }
     }
 
-    func makeNSView(context: Context) -> DragView { DragView() }
+    func makeNSView(context: Context) -> DragView {
+        let view = DragView()
+        if let displayMenu {
+            view.menu = displayMenu.makeMenu()
+            view.toolTip = "Pantallas"
+            view.setAccessibilityElement(true)
+            view.setAccessibilityRole(.popUpButton)
+            view.setAccessibilityLabel("Pantallas")
+        }
+        return view
+    }
     func updateNSView(_ nsView: DragView, context: Context) {}
 }
 
@@ -246,7 +294,7 @@ final class Delegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         panel.isFloatingPanel = true; panel.hidesOnDeactivate = false
         panel.isMovableByWindowBackground = true
         panel.isOpaque = false; panel.backgroundColor = .clear; panel.hasShadow = true
-        let hosting = NSHostingView(rootView: Widget(model: model, keyboard: keyboard, naming: naming, practice: practice,
+        let hosting = NSHostingView(rootView: Widget(model: model, keyboard: keyboard, naming: naming, practice: practice, displayMenu: displayMenu,
                                                     onChangeSize: { [weak self] in self?.cycleSize() }, onHide: { [weak self] in self?.hide() }))
         hosting.sizingOptions = []
         panel.contentView = hosting
@@ -270,9 +318,7 @@ final class Delegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         referenceItem.submenu = referenceMenu; keyboardMenu = referenceMenu
         menu.addItem(referenceItem)
-        let displays = NSMenu(title: "Pantallas")
-        displays.delegate = displayMenu
-        menu.addItem(withTitle: "Pantallas", action: nil, keyEquivalent: "").submenu = displays
+        menu.addItem(withTitle: "Pantallas", action: nil, keyEquivalent: "").submenu = displayMenu.makeMenu()
         menu.addItem(.separator())
         menu.addItem(withTitle: "Salir", action: #selector(quit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
