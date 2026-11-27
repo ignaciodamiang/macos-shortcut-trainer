@@ -29,6 +29,12 @@ final class DisplayMenu: NSObject, NSMenuDelegate {
         }
     }
 
+    func makeMenu() -> NSMenu {
+        let menu = NSMenu(title: "Pantallas")
+        menu.delegate = self
+        return menu
+    }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         menu.autoenablesItems = false
