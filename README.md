@@ -35,6 +35,8 @@ app. The selected mode and normal position survive a restart; leaving full-heigh
 mode restores the normal placement. Moving between displays or changing the
 screen layout keeps the panel inside the available area.
 
+Use **Pantallas** in the menu bar to disable or reactivate a connected external monitor. The last active screen stays available. This feature uses a private macOS display function, and support depends on the Mac and monitor.
+
 ## App shortcuts
 
 The active app's shortcuts appear before general shortcuts. The initial profiles

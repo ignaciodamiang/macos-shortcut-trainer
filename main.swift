@@ -183,6 +183,7 @@ final class Delegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var timer: Timer?
     var activationObserver: NSObjectProtocol?
     var screenObserver: NSObjectProtocol?
+    let displayMenu = DisplayMenu()
     var keyboardMenu: NSMenu?
     var layout: WidgetLayout!
     var updatingFrame = false
@@ -241,6 +242,9 @@ final class Delegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         referenceItem.submenu = referenceMenu; keyboardMenu = referenceMenu
         menu.addItem(referenceItem)
+        let displays = NSMenu(title: "Pantallas")
+        displays.delegate = displayMenu
+        menu.addItem(withTitle: "Pantallas", action: nil, keyEquivalent: "").submenu = displays
         menu.addItem(.separator())
         menu.addItem(withTitle: "Salir", action: #selector(quit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
