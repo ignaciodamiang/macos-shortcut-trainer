@@ -26,54 +26,82 @@ struct Widget: View {
     let onChangeSize: () -> Void
     let onHide: () -> Void
 
+    private static let inset: CGFloat = 18
     private var shortcuts: [Shortcut] { model.visibleShortcuts }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            header
+            if !model.collapsed { expandedContent.padding(.horizontal, Self.inset) }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.bottom, Self.inset)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .preferredColorScheme(.dark)
+    }
+
+    private var header: some View {
+        HStack {
             HStack {
                 Image(systemName: "command").foregroundStyle(.mint)
                 Text(model.content.title).font(.system(size: 16, weight: .semibold)).lineLimit(1)
-                Spacer()
+                Spacer(minLength: 0)
+            }
+            .padding([.top, .leading], Self.inset)
+            .overlay { PanelDragArea() }
+
+            HStack {
                 Button(action: onChangeSize) { Image(systemName: model.sizeMode.icon) }
                     .buttonStyle(.plain).help(model.sizeMode.nextAction)
                     .accessibilityLabel(model.sizeMode.nextAction)
                 Button(action: onHide) { Image(systemName: "xmark") }
                     .buttonStyle(.plain).help("Ocultar; reabrí desde el ícono ⌘ de la barra superior")
             }
-            if !model.collapsed {
-                HStack(spacing: 6) {
-                    Image(systemName: "app").foregroundStyle(.mint)
-                    Text(model.activeApp.name).lineLimit(1)
-                    Spacer(minLength: 4)
-                    Text(shortcuts.contains(where: \.isAppSpecific) ? "App + generales" : "Generales")
-                        .font(.system(size: 9)).foregroundStyle(.secondary)
-                }.font(.system(size: 11, weight: .medium))
-                KeyboardGuide(keyboard: keyboard, naming: naming)
-                if let session = practice.session {
-                    PracticeGuide(session: session, labels: naming.labels, onCancel: { practice.cancel() })
-                }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(Array(shortcuts.enumerated()), id: \.offset) { index, shortcut in
-                            if index == 0 || shortcuts[index - 1].category != shortcut.category || shortcuts[index - 1].isAppSpecific != shortcut.isAppSpecific {
-                                Text(shortcut.category.uppercased())
-                                    .font(.system(size: 10, weight: .bold)).foregroundStyle(.secondary).padding(.top, 6)
-                            }
-                            let available = keyboard.isListening && !shortcut.resolvedCombinations.isEmpty
-                            ShortcutRow(shortcut: shortcut, labels: naming.labels, available: available) {
-                                if keyboard.canIntercept {
-                                    practice.begin(shortcut, isListening: keyboard.canIntercept, modifiers: keyboard.modifiers, keys: keyboard.keys)
-                                } else { keyboard.requestInterceptionPermission() }
-                            }
+            .padding([.top, .trailing], Self.inset)
+        }
+    }
+
+    private var expandedContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 6) {
+                Image(systemName: "app").foregroundStyle(.mint)
+                Text(model.activeApp.name).lineLimit(1)
+                Spacer(minLength: 4)
+                Text(shortcuts.contains(where: \.isAppSpecific) ? "App + generales" : "Generales")
+                    .font(.system(size: 9)).foregroundStyle(.secondary)
+            }.font(.system(size: 11, weight: .medium))
+            KeyboardGuide(keyboard: keyboard, naming: naming)
+            if let session = practice.session {
+                PracticeGuide(session: session, labels: naming.labels, onCancel: { practice.cancel() })
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(Array(shortcuts.enumerated()), id: \.offset) { index, shortcut in
+                        if index == 0 || shortcuts[index - 1].category != shortcut.category || shortcuts[index - 1].isAppSpecific != shortcut.isAppSpecific {
+                            Text(shortcut.category.uppercased())
+                                .font(.system(size: 10, weight: .bold)).foregroundStyle(.secondary).padding(.top, 6)
+                        }
+                        let available = keyboard.isListening && !shortcut.resolvedCombinations.isEmpty
+                        ShortcutRow(shortcut: shortcut, labels: naming.labels, available: available) {
+                            if keyboard.canIntercept {
+                                practice.begin(shortcut, isListening: keyboard.canIntercept, modifiers: keyboard.modifiers, keys: keyboard.keys)
+                            } else { keyboard.requestInterceptionPermission() }
                         }
                     }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(18)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18))
-        .preferredColorScheme(.dark)
     }
+}
+
+private struct PanelDragArea: NSViewRepresentable {
+    final class DragView: NSView {
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
+    }
+
+    func makeNSView(context: Context) -> DragView { DragView() }
+    func updateNSView(_ nsView: DragView, context: Context) {}
 }
 
 struct ShortcutRow: View {

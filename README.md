@@ -27,13 +27,13 @@ across releases.
 
 ## Panel
 
-Drag its background to move it, use the size button to cycle through compact,
-normal, and full-height modes, and use the X to hide it. Full-height mode spans
-the available height of the panel's current screen, excluding the menu bar and
-Dock. The menu-bar command icon reopens the panel, changes its size, or quits the
-app. The selected mode and normal position survive a restart; leaving full-height
-mode restores the normal placement. Moving between displays or changing the
-screen layout keeps the panel inside the available area.
+Drag the header by its icon, title, or empty space to move the panel. The size
+button cycles through compact, normal, and full-height modes. The X hides the
+panel. Full-height mode spans the available height of the panel's screen,
+excluding the menu bar and Dock. The menu-bar command icon reopens the panel,
+changes its size, or quits the app. The selected mode and normal position survive
+a restart. Leaving full-height mode restores the normal placement. Moving between
+displays or changing the screen layout keeps the panel inside the available area.
 
 Use **Pantallas** in the menu bar to disable or reactivate a connected external monitor. The last active screen stays available. This feature uses a private macOS display function, and support depends on the Mac and monitor.
 
